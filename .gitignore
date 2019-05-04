@@ -63,3 +63,10 @@ node_modules/
 
 # dotenv environment variables file
 .env
+
+// set configuration variables for firebase
+// cloud functions based on current used firebase project
+env.sh
+
+// environment configuration to emulate cloud functions locally
+.runtimeconfig.json
