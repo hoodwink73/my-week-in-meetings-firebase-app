@@ -11,6 +11,7 @@ const {
   getOAuthClientForUser
 } = require("../utils");
 
+// get events from Google calendar and store it in firebase
 module.exports = ({
   timeMin = getStartOfLastWeek(),
   timeMax = getEndOfThisWeek(),

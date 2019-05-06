@@ -1,3 +1,4 @@
 const getAndStoreEvents = require("./getAndStoreEvents");
+const getEventsForUserForWeek = require("./getEventsForUserForWeek");
 
-module.exports = { getAndStoreEvents };
+module.exports = { getAndStoreEvents, getEventsForUserForWeek };
