@@ -1,6 +1,5 @@
 const concatMap = require("concat-map");
 const { fromPairs, toPairs, groupBy } = require("lodash");
-
 const moment = require("moment-timezone");
 
 const aggregateTotalMeetingTime = (events = [], priorAccumulatedValue = 0) => {
@@ -22,7 +21,8 @@ const aggregateAverageMeetingTime = (
 ) => {
   const eventsNum = events.length;
 
-  let avergaeMeetingTime = aggregateTotalMeetingTime(events) / eventsNum;
+  let avergaeMeetingTime =
+    eventsNum > 0 ? aggregateTotalMeetingTime(events) / eventsNum : 0;
 
   if (priorAccumulatedValue) {
     avergaeMeetingTime = (avergaeMeetingTime + priorAccumulatedValue) / 2;
@@ -62,6 +62,40 @@ const rankCollaborators = (events = [], priorAccumulatedValue = {}) => {
   });
 
   return fromPairs(result);
+};
+
+const rankOrganizers = (events = [], priorAccumulatedValue = {}) => {
+  // take out organisers from all events and take it out
+  // and store it in an array. we need to count the duplicate
+  // occurences of each organiser later
+  const organizersForAllEvents = events
+    .map(event => event.organizer)
+    .filter(Boolean);
+
+  const meetingsCountByOrganisers = organizersForAllEvents.reduce(
+    (aggregatedRecord, organizer) => {
+      const organizerEmail = organizer.email;
+      const meetingsOrganizedByThisOrganiser = aggregatedRecord[organizerEmail];
+      const result = {};
+
+      if (organizerEmail && meetingsOrganizedByThisOrganiser) {
+        result[organizerEmail] = {
+          ...meetingsOrganizedByThisOrganiser,
+          count: meetingsOrganizedByThisOrganiser.count + 1
+        };
+      } else {
+        result[organizerEmail] = {
+          count: 1,
+          displayName: organizer.displayName || ""
+        };
+      }
+
+      return { ...aggregatedRecord, ...result };
+    },
+    priorAccumulatedValue
+  );
+
+  return meetingsCountByOrganisers;
 };
 
 const gapBetweenMeetings = (events, priorAccumulatedValue = []) => {
@@ -168,6 +202,7 @@ module.exports = {
   aggregateTotalMeetingTime: aggregateTotalMeetingTime,
   aggregateAverageMeetingTime: aggregateAverageMeetingTime,
   rankCollaborators: rankCollaborators,
+  rankOrganizers: rankOrganizers,
   gapBetweenMeetings: gapBetweenMeetings,
   eventsFrequencyByDayOfWeek: eventsFrequencyByDayOfWeek,
   selfOrganisedVsInvited: selfOrganisedVsInvited,
