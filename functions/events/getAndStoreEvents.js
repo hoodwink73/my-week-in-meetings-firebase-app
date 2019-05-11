@@ -48,13 +48,12 @@ module.exports = ({
       const userDocRef = db.collection("users").doc(userID);
       const eventsCollectionRef = db.collection(`users/${userID}/events`);
 
-      const batch = db.batch();
-
       if (calendarDataToStore) {
-        batch.set(userDocRef, { calendar: calendarDataToStore });
+        userDocRef.set({ calendar: calendarDataToStore }, { merge: true });
       }
 
       console.log("calendarTimezone", calendarTimeZone);
+      const batch = db.batch();
 
       eventsDataToStore.forEach(event => {
         var eventDocRef = eventsCollectionRef.doc(event.id);
