@@ -51,3 +51,16 @@ There are quite a few things to be done when you have to create a new environmen
 - Make sure you have turned on Google as an allowed sign in option in your Firebase project's Authentication
 
 - TODO: Note down how to verify and add url on which the calendar webhook will post
+
+# Notes
+
+## Aggregation
+
+while aggregating events we filter out the events matching the following criteria
+
+- the user has explicitly declined the event
+- there are no other attendees in the event apart from the user
+
+The events collection though, contains all events.
+
+Similar criteria for filtering is applied in the UI when time left for work is enquired.

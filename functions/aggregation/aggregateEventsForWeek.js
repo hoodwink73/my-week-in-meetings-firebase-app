@@ -5,6 +5,7 @@ const moment = require("moment-timezone");
 const { getUserDetails } = require("../authentication");
 const { getEventsForUserForWeek } = require("../events");
 const aggregators = require("./aggregators");
+const { EVENT_STATUSES } = require("../constants");
 
 const AGGREGATE_OPERATIONS_TO_BE_PERFORMED = values(aggregators);
 
@@ -32,6 +33,31 @@ module.exports = ({ userID, week }) => {
       },
       (done, { week }) => getEventsForUserForWeek({ userID, week }).pipe(done)
     )
+    .then((done, { userDetails, week }, events) => {
+      // we want to ignore events based on two criterias
+      // -  the user has declined the event explicitly
+      // -  there are no other attendees in the event (expcept the user)
+
+      const filteredEvents = events.filter(event => {
+        let attendeeMe, areThereOtherAttendees;
+
+        if (event.attendees) {
+          [attendeeMe] = event.attendees.filter(attendee => attendee.self);
+
+          areThereOtherAttendees = Boolean(
+            event.attendees.filter(attendee => !attendee.self).length
+          );
+
+          if (attendeeMe.responseStatus !== EVENT_STATUSES.get("Declined")) {
+            if (areThereOtherAttendees) {
+              return true;
+            }
+          }
+        }
+      });
+
+      done({ userDetails, week }, filteredEvents);
+    })
     .then((done, { week }, events) => {
       const docRef = db
         .collection(`users/${userID}/aggregates`)

@@ -1,3 +1,5 @@
+const functions = require("firebase-functions");
+
 exports.NUMBER_OF_LAST_WEEKS_TO_FETCH_FOR_NEW_USER = 4;
 
 // we send this while subscribing to google events webhook token
@@ -10,3 +12,10 @@ exports.CALENDAR_EVENTS_WEBHOOK_SECRET = "554faf2d-dc6d-465c-a0b0-14d7bb514bf3";
 exports.USER_EVENTS_WEBHOOK_URL = `https://us-central1-${
   functions.config().project.id
 }.cloudfunctions.net/calendarNotificationWebhook/`;
+
+exports.EVENT_STATUSES = new Map([
+  ["Accepted", "accepted"],
+  ["Maybe", "tentative"],
+  ["Declined", "declined"],
+  ["Not Responded", "needsAction"]
+]);
