@@ -49,3 +49,5 @@ There are quite a few things to be done when you have to create a new environmen
   - Invalid Idp Response: the Google id_token is not allowed to be used with this application. Its audience (OAuth 2.0 client ID) is XXXXX-XXXXX.apps.googleusercontent.com, which is not authorized to be used in the project with project_number: XXXXX.
 
 - Make sure you have turned on Google as an allowed sign in option in your Firebase project's Authentication
+
+- TODO: Note down how to verify and add url on which the calendar webhook will post

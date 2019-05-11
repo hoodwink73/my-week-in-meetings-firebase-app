@@ -9,6 +9,10 @@ const {
 const { getAndStoreEvents } = require("./events");
 const { aggregateEventsForWeek } = require("./aggregation");
 const {
+  pushNotificationHandlerExpressApp,
+  subscribeUserToCalendarEvents
+} = require("./calendarWebHooks");
+const {
   getUserGoogleID,
   getStartOfWeek,
   getEndOfThisWeek
@@ -56,7 +60,13 @@ exports.performTasksForNewUser = functions.auth.user().onCreate(user => {
               )
             );
           });
-      }
+      },
+      subscribeUserToCalendarEvents({ userID: userGoogleID })
     )
     .toPromise();
 });
+
+// an express app to handle push notfications for events in a calendar
+exports.calendarNotificationWebhook = functions.https.onRequest(
+  pushNotificationHandlerExpressApp
+);

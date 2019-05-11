@@ -16,12 +16,14 @@
     "asynquence": "^0.10.2",
     "asynquence-contrib": "^0.28.2",
     "concat-map": "^0.0.1",
+    "express": "^4.16.4",
     "firebase-admin": "~7.0.0",
     "firebase-functions": "^2.2.0",
     "googleapis": "^39.2.0",
     "lodash": "^4.17.11",
     "moment": "^2.24.0",
-    "moment-timezone": "^0.5.25"
+    "moment-timezone": "^0.5.25",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "eslint": "^5.12.0",
