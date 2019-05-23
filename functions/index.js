@@ -10,8 +10,10 @@ const { getAndStoreEvents } = require("./events");
 const { aggregateEventsForWeek } = require("./aggregation");
 const {
   pushNotificationHandlerExpressApp,
-  subscribeUserToCalendarEvents
+  subscribeUserToCalendarEvents,
+  unsubscribeUserToCalendarEvents
 } = require("./calendarWebHooks");
+const { deleteUserData } = require("./cleanup");
 const {
   getUserGoogleID,
   getStartOfWeek,
@@ -66,7 +68,19 @@ exports.performTasksForNewUser = functions.auth.user().onCreate(user => {
     .toPromise();
 });
 
-// an express app to handle push notfications for events in a calendar
-exports.calendarNotificationWebhook = functions.https.onRequest(
-  pushNotificationHandlerExpressApp
-);
+exports.performTasksForDeletedUser = functions.auth.user().onDelete(user => {
+  const userGoogleID = getUserGoogleID(user);
+  console.log(`A user with google id ${userGoogleID} has been deleted`);
+
+  return ASQ()
+    .seq(() => unsubscribeUserToCalendarEvents({ userID: userGoogleID }))
+    .seq(() => deleteUserData({ userID: userGoogleID }))
+    .toPromise();
+});
+
+exports.deleteUser = functions.https.onCall(({ userID }) => {
+  return ASQ()
+    .seq(() => unsubscribeUserToCalendarEvents({ userID }))
+    .seq(() => deleteUserData({ userID }))
+    .toPromise();
+});
