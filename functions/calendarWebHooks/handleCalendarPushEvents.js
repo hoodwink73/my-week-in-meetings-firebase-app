@@ -25,6 +25,11 @@ app.get("/", (req, res) => {
 
 app.post("/", (req, res) => {
   const { userID } = qs.parse(req.get("X-Goog-Channel-Token"));
+  const expirationTime = req.get("X-Goog-Channel-Expiration");
+
+  console.log(
+    `Received a notification for user ${userID}. Webhook will expire on ${expirationTime}`
+  );
 
   ASQ()
     .val(userID)
