@@ -84,3 +84,8 @@ exports.deleteUser = functions.https.onCall(({ userID }) => {
     .seq(() => deleteUserData({ userID }))
     .toPromise();
 });
+
+// an express app to handle push notfications for events in a calendar
+exports.calendarNotificationWebhook = functions.https.onRequest(
+  pushNotificationHandlerExpressApp
+);
