@@ -89,3 +89,7 @@ exports.deleteUser = functions.https.onCall(({ userID }) => {
 exports.calendarNotificationWebhook = functions.https.onRequest(
   pushNotificationHandlerExpressApp
 );
+exports.declineEvent = functions.https.onCall(
+  ({ userID, eventID, comment = "" }) =>
+    declineEvent({ userID, eventID, comment }).toPromise()
+);
