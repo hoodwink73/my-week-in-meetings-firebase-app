@@ -13,7 +13,37 @@ module.exports = function unsubscribeToCalendarEvents({ userID }) {
     .seq(getOAuthClientForUser)
     .val(oAuthClient => google.calendar({ version: "v3", auth: oAuthClient }));
 
+  // this method is run when a user is deleted
+  // and we might receive the event twice
+  // so we do not want to unsubscribe webhooks for an already
+  // deleted user
+  const validateUserCredsAvailability = ASQ()
+    .promise(() => {
+      return db
+        .collection("users_google_credentials")
+        .doc(userID)
+        .get();
+    })
+    .val(userCredsSnapshot => {
+      if (userCredsSnapshot.exists) {
+        return true;
+      } else {
+        return true;
+      }
+    });
+
   return ASQ()
+    .seq(validateUserCredsAvailability)
+    .then((done, userCredsAvailable) => {
+      if (userCredsAvailable) {
+        done();
+      } else {
+        done.fail({
+          internal_error_message:
+            "The user you are trying to unsubscribe has already been deleted"
+        });
+      }
+    })
     .promise(userRef.get())
     .then((done, doc) => {
       const user = doc.data();
@@ -65,10 +95,5 @@ module.exports = function unsubscribeToCalendarEvents({ userID }) {
         webhookDetails: FieldValue.delete()
       })
     )
-    .or(err =>
-      console.error(
-        "Cancelled webhook subscription but failed to write it to firestore",
-        err
-      )
-    );
+    .or(err => console.error(err));
 };
