@@ -4,17 +4,18 @@ const functions = require("firebase-functions");
 
 const {
   getAndStoreOfflineAccessToken,
-  getUserDetails
+  getUserDetails,
+  doesUserExistInFirebase,
+  setDefaultUserConfig
 } = require("./authentication");
 const { getAndStoreEvents, declineEvent } = require("./events");
 const { aggregateEventsForWeek } = require("./aggregation");
 const {
   pushNotificationHandlerExpressApp,
   subscribeUserToCalendarEvents,
-  unsubscribeUserToCalendarEvents
+  unsubscribeUserToCalendarEvents,
+  resubscribeToCalendarEvents
 } = require("./calendarWebHooks");
-
-const resubscribeToCalendarEvents = require("./calendarWebHooks/resubscribe");
 
 const { deleteUserData } = require("./cleanup");
 const {
@@ -33,6 +34,10 @@ exports.getAndStoreOfflineAccessToken = functions.https.onCall(
   getAndStoreOfflineAccessToken
 );
 
+exports.doesUserExistInFirebase = functions.https.onCall(({ userGoogleID }) =>
+  doesUserExistInFirebase(userGoogleID).toPromise()
+);
+
 // get all events for last few weeks and this week from calendar
 // aggregate those events for each week
 exports.performTasksForNewUser = functions.auth.user().onCreate(user => {
@@ -40,6 +45,7 @@ exports.performTasksForNewUser = functions.auth.user().onCreate(user => {
   console.log("A new user has been created", userGoogleID);
 
   return ASQ()
+    .seq(() => setDefaultUserConfig({ userGoogleID }))
     .seq(
       getAndStoreEvents({
         timeMin: getStartOfWeek(NUMBER_OF_LAST_WEEKS_TO_FETCH_FOR_NEW_USER),
@@ -94,5 +100,5 @@ exports.declineEvent = functions.https.onCall(
 );
 
 exports.webhookExpirationCheck = functions.pubsub
-  .schedule("every day 13:30")
-  .onRun(() => resubscribeToCalendarEvents());
+  .schedule("every day 00:00")
+  .onRun(context => resubscribeToCalendarEvents());
