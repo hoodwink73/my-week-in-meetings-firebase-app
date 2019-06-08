@@ -6,13 +6,16 @@ const {
   getAndStoreOfflineAccessToken,
   getUserDetails
 } = require("./authentication");
-const { getAndStoreEvents } = require("./events");
+const { getAndStoreEvents, declineEvent } = require("./events");
 const { aggregateEventsForWeek } = require("./aggregation");
 const {
   pushNotificationHandlerExpressApp,
   subscribeUserToCalendarEvents,
   unsubscribeUserToCalendarEvents
 } = require("./calendarWebHooks");
+
+const resubscribeToCalendarEvents = require("./calendarWebHooks/resubscribe");
+
 const { deleteUserData } = require("./cleanup");
 const {
   getUserGoogleID,
@@ -63,14 +66,16 @@ exports.performTasksForNewUser = functions.auth.user().onCreate(user => {
             );
           });
       },
-      subscribeUserToCalendarEvents({ userID: userGoogleID })
+      () => subscribeUserToCalendarEvents({ userID: userGoogleID })
     )
     .toPromise();
 });
 
 exports.performTasksForDeletedUser = functions.auth.user().onDelete(user => {
   const userGoogleID = getUserGoogleID(user);
-  console.log(`A user with google id ${userGoogleID} has been deleted`);
+  console.log(
+    `Initiating cleanup process as user ${userGoogleID} has been deleted`
+  );
 
   return ASQ()
     .seq(() => unsubscribeUserToCalendarEvents({ userID: userGoogleID }))
@@ -78,18 +83,16 @@ exports.performTasksForDeletedUser = functions.auth.user().onDelete(user => {
     .toPromise();
 });
 
-exports.deleteUser = functions.https.onCall(({ userID }) => {
-  return ASQ()
-    .seq(() => unsubscribeUserToCalendarEvents({ userID }))
-    .seq(() => deleteUserData({ userID }))
-    .toPromise();
-});
-
 // an express app to handle push notfications for events in a calendar
 exports.calendarNotificationWebhook = functions.https.onRequest(
   pushNotificationHandlerExpressApp
 );
+
 exports.declineEvent = functions.https.onCall(
   ({ userID, eventID, comment = "" }) =>
     declineEvent({ userID, eventID, comment }).toPromise()
 );
+
+exports.webhookExpirationCheck = functions.pubsub
+  .schedule("every day 13:30")
+  .onRun(() => resubscribeToCalendarEvents());
