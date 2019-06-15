@@ -89,6 +89,24 @@ exports.performTasksForDeletedUser = functions.auth.user().onDelete(user => {
     .toPromise();
 });
 
+exports.performTasksForDeletedUser = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: "2GB"
+  })
+  .auth.user()
+  .onDelete(user => {
+    const userGoogleID = getUserGoogleID(user);
+    console.log(
+      `Initiating cleanup process as user ${userGoogleID} has been deleted`
+    );
+
+    return ASQ()
+      .seq(() => unsubscribeUserToCalendarEvents({ userID: userGoogleID }))
+      .seq(() => deleteUserData({ userID: userGoogleID }))
+      .toPromise();
+  });
+
 // an express app to handle push notfications for events in a calendar
 exports.calendarNotificationWebhook = functions.https.onRequest(
   pushNotificationHandlerExpressApp
