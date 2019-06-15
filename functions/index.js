@@ -17,7 +17,7 @@ const {
   resubscribeToCalendarEvents
 } = require("./calendarWebHooks");
 
-const { deleteUserData } = require("./cleanup");
+const { onDeleteUserRequest, deleteUserData } = require("./cleanup");
 const {
   getUserGoogleID,
   getStartOfWeek,
@@ -77,16 +77,8 @@ exports.performTasksForNewUser = functions.auth.user().onCreate(user => {
     .toPromise();
 });
 
-exports.performTasksForDeletedUser = functions.auth.user().onDelete(user => {
-  const userGoogleID = getUserGoogleID(user);
-  console.log(
-    `Initiating cleanup process as user ${userGoogleID} has been deleted`
-  );
-
-  return ASQ()
-    .seq(() => unsubscribeUserToCalendarEvents({ userID: userGoogleID }))
-    .seq(() => deleteUserData({ userID: userGoogleID }))
-    .toPromise();
+exports.onDeleteUserRequest = functions.https.onCall((data, context) => {
+  return onDeleteUserRequest(context.auth.uid);
 });
 
 exports.performTasksForDeletedUser = functions
