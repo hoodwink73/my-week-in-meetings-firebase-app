@@ -109,6 +109,10 @@ exports.declineEvent = functions.https.onCall(
     declineEvent({ userID, eventID, comment }).toPromise()
 );
 
-exports.webhookExpirationCheck = functions.pubsub
-  .schedule("every day 00:00")
-  .onRun(context => resubscribeToCalendarEvents());
+exports.webhookExpirationCheck = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: "2GB"
+  })
+  .pubsub.schedule("every day 00:00")
+  .onRun(() => resubscribeToCalendarEvents());
