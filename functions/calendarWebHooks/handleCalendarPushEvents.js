@@ -7,6 +7,7 @@ const { getAndStoreEvents } = require("../events");
 const { aggregateEventsForWeek } = require("../aggregation");
 const { getUserDetails } = require("../authentication");
 const { getStartOfThisWeek } = require("../utils");
+const functions = require("firebase-functions");
 
 app.get("/", (req, res) => {
   res.send(`
@@ -15,7 +16,9 @@ app.get("/", (req, res) => {
       <title>Time</title>
       <link rel="stylesheet" href="/style.css">
       <script src="/script.js"></script>
-        <meta name="google-site-verification" content="DNeZi4SircAcVGw55U_Mn6C79flMT-_AsIDR83lJuQA" />
+        <meta name="google-site-verification" content=${
+          functions.config().google_site_verification.content
+        } />
     </head>
     <body>
       <p>Hello</p>
@@ -51,6 +54,7 @@ app.post("/", (req, res) => {
     })
     .val(() => res.status(200).send("OK"))
     .or(err => {
+      // how to figure out that the error happened in `getAndStoreEvents`?
       console.error(
         "Received a webhook event but failed to fetch new events or aggregate data for this week",
         err

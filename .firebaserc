@@ -1,6 +1,7 @@
 {
   "projects": {
     "default": "meetings-test-data",
-    "development": "my-week-in-meetings-dev"
+    "development": "my-week-in-meetings-dev",
+    "production": "deepwork-today"
   }
 }
