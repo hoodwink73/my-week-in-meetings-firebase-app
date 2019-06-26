@@ -9,7 +9,11 @@ const {
   setDefaultUserConfig
 } = require("./authentication");
 const { getAndStoreEvents, declineEvent } = require("./events");
-const { aggregateEventsForWeek } = require("./aggregation");
+const {
+  aggregateEventsForWeek,
+  setDefaultFirstAggregationStatus,
+  markFirstAggregationCompleteForUser
+} = require("./aggregation");
 const {
   pushNotificationHandlerExpressApp,
   subscribeUserToCalendarEvents,
@@ -46,6 +50,7 @@ exports.performTasksForNewUser = functions.auth.user().onCreate(user => {
 
   return ASQ()
     .seq(() => setDefaultUserConfig({ userGoogleID }))
+    .seq(() => setDefaultFirstAggregationStatus({ userID: userGoogleID }))
     .seq(
       getAndStoreEvents({
         timeMin: getStartOfWeek(NUMBER_OF_LAST_WEEKS_TO_FETCH_FOR_NEW_USER),
@@ -72,6 +77,7 @@ exports.performTasksForNewUser = functions.auth.user().onCreate(user => {
             );
           });
       },
+      () => markFirstAggregationCompleteForUser({ userID: userGoogleID }),
       () => subscribeUserToCalendarEvents({ userID: userGoogleID })
     )
     .toPromise();

@@ -57,9 +57,15 @@ app.post("/", (req, res) => {
       // how to figure out that the error happened in `getAndStoreEvents`?
       console.error(
         "Received a webhook event but failed to fetch new events or aggregate data for this week",
-        err
+        err,
+        err.message
       );
-      res.status(500).send("Error");
+
+      if (err === "invalid_grant") {
+        res.status(403).send("Permission denied to get events");
+      } else {
+        res.status(500).send("Error");
+      }
     });
 });
 
