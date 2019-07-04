@@ -52,9 +52,9 @@ module.exports = function subscribeUserToCalendarEvents({ userID }) {
         );
     })
     .or(error => {
-      if (error.inetrnal_error_message) {
-        console.error(error.inetrnal_error_message);
-      } else if (error.data.error) {
+      if (error.internal_error_message) {
+        console.error(error.internal_error_message);
+      } else if (error.data && error.data.error) {
         console.error(
           "Failed to subscribe to calendar event webhook",
           error.data.error
