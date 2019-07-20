@@ -15,6 +15,14 @@ const aggregateTotalMeetingTime = (events = [], priorAccumulatedValue = 0) => {
   return totalDuration;
 };
 
+const aggregateMeetingDurations = (events = [], priorAccumulatedValue = []) => {
+  const durationOfMeetings = events.map(
+    event => event.enrichedData.durationInMs
+  );
+
+  return [...priorAccumulatedValue, ...durationOfMeetings];
+};
+
 const aggregateAverageMeetingTime = (
   events = [],
   priorAccumulatedValue = 0
@@ -200,6 +208,7 @@ const eventCreatorByDomainsFrequency = (
 
 module.exports = {
   aggregateTotalMeetingTime: aggregateTotalMeetingTime,
+  aggregateMeetingDurations: aggregateMeetingDurations,
   aggregateAverageMeetingTime: aggregateAverageMeetingTime,
   rankCollaborators: rankCollaborators,
   rankOrganizers: rankOrganizers,
