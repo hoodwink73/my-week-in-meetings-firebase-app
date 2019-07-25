@@ -26,6 +26,7 @@ module.exports = ({
     })
     .then((done, listEventsResponse) => {
       let calendarDataToStore = null;
+      let calendarDataToStoreWritePromise;
       const eventsDataToStore = concatMap(
         listEventsResponse,
         data => data.items
@@ -49,7 +50,10 @@ module.exports = ({
       const eventsCollectionRef = db.collection(`users/${userID}/events`);
 
       if (calendarDataToStore) {
-        userDocRef.set({ calendar: calendarDataToStore }, { merge: true });
+        calendarDataToStoreWritePromise = userDocRef.set(
+          { calendar: calendarDataToStore },
+          { merge: true }
+        );
       }
 
       console.log("calendarTimezone", calendarTimeZone);
@@ -61,7 +65,10 @@ module.exports = ({
       });
 
       ASQ()
-        .promise(batch.commit())
+        .promise(
+          Promise.resolve(calendarDataToStoreWritePromise),
+          batch.commit()
+        )
         .pipe(done);
     })
     .or(err => console.error(err));
