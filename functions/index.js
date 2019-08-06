@@ -21,6 +21,8 @@ const {
   resubscribeToCalendarEvents
 } = require("./calendarWebHooks");
 
+const { sendEmail, sendWelcomeEmail } = require("./mail");
+
 const { onDeleteUserRequest, deleteUserData } = require("./cleanup");
 const {
   getUserGoogleID,
@@ -78,7 +80,8 @@ exports.performTasksForNewUser = functions.auth.user().onCreate(user => {
           });
       },
       () => markFirstAggregationCompleteForUser({ userID: userGoogleID }),
-      () => subscribeUserToCalendarEvents({ userID: userGoogleID })
+      () => subscribeUserToCalendarEvents({ userID: userGoogleID }),
+      () => sendWelcomeEmail(user)
     )
     .toPromise();
 });
@@ -111,9 +114,13 @@ exports.calendarNotificationWebhook = functions.https.onRequest(
 );
 
 exports.declineEvent = functions.https.onCall(
-  ({ userID, eventID, comment = "" }) =>
-    declineEvent({ userID, eventID, comment }).toPromise()
+  ({ userID, eventID, comment = "", step, isDirty = false }) =>
+    declineEvent({ userID, eventID, comment, step, isDirty }).toPromise()
 );
+
+// exports.resubscribeToCalendarEvents = functions.https.onCall(
+//   resubscribeToCalendarEvents
+// );
 
 exports.webhookExpirationCheck = functions
   .runWith({
@@ -122,3 +129,17 @@ exports.webhookExpirationCheck = functions
   })
   .pubsub.schedule("every day 00:00")
   .onRun(() => resubscribeToCalendarEvents());
+
+exports.sendEmail = functions.https.onCall((...details) =>
+  sendEmail(...details)
+);
+
+exports.sendWelcomeEmail = functions.https.onCall(async (...details) => {
+  try {
+    let userRecord = await admin.auth().getUserByEmail("hoodwink73@gmail.com");
+    userRecord = userRecord.toJSON();
+    await sendWelcomeEmail(userRecord);
+  } catch (e) {
+    console.error(e);
+  }
+});

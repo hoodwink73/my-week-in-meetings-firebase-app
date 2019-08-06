@@ -13,6 +13,7 @@
     "logs": "firebase functions:log"
   },
   "dependencies": {
+    "@sendgrid/mail": "^6.4.0",
     "asynquence": "^0.10.2",
     "asynquence-contrib": "^0.28.2",
     "concat-map": "^0.0.1",
