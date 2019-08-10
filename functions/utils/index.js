@@ -9,6 +9,9 @@ const getOAuthClientForUser = require("./getOAuthClientForUser");
 const getUserGoogleID = require("./getUserGoogleID");
 const getUsername = require("./getUsername");
 const getUserEmail = require("./getUserEmail");
+const doesEventHappensThisDay = require("./doesEventHappensThisDay");
+const qualifyEvent = require("./qualifyEvent");
+const checkTime = require("./checkTime");
 
 module.exports = {
   getStartOfWeek,
@@ -18,5 +21,8 @@ module.exports = {
   getOAuthClientForUser,
   getUserGoogleID,
   getUsername,
-  getUserEmail
+  getUserEmail,
+  doesEventHappensThisDay,
+  qualifyEvent,
+  checkTime
 };

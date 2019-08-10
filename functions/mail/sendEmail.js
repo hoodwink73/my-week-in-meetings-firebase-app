@@ -16,7 +16,10 @@ module.exports = async function sendEmail({
   try {
     const msg = {
       to,
-      from: FROM_ADDRESS,
+      from: {
+        email: FROM_ADDRESS,
+        name: "Deepwork Today"
+      },
       subject: subject,
       ...(templateId
         ? {
@@ -28,7 +31,7 @@ module.exports = async function sendEmail({
           })
     };
 
-    sgMail.send(msg);
+    await sgMail.send(msg);
   } catch (e) {
     console.error(`Failed to send mail to ${to}`);
   }

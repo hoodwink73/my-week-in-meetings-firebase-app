@@ -21,7 +21,8 @@ const {
   resubscribeToCalendarEvents
 } = require("./calendarWebHooks");
 
-const { sendEmail, sendWelcomeEmail } = require("./mail");
+const { sendEmail, sendDailyEmail, sendWelcomeEmail } = require("./mail");
+const scheduleDailyMail = require("./mail/scheduleDailyMail.js");
 
 const { onDeleteUserRequest, deleteUserData } = require("./cleanup");
 const {
@@ -130,16 +131,47 @@ exports.webhookExpirationCheck = functions
   .pubsub.schedule("every day 00:00")
   .onRun(() => resubscribeToCalendarEvents());
 
-exports.sendEmail = functions.https.onCall((...details) =>
-  sendEmail(...details)
-);
+// exports.sendEmail = functions.https.onCall((...details) =>
+//   sendEmail(...details)
+// );
+//
+// exports.sendWelcomeEmail = functions.https.onCall(async () => {
+//   try {
+//     let userRecord = await admin.auth().getUserByEmail("hoodwink73@gmail.com");
+//     userRecord = userRecord.toJSON();
+//     await sendWelcomeEmail(userRecord);
+//   } catch (e) {
+//     console.error(e);
+//   }
+// });
+//
 
-exports.sendWelcomeEmail = functions.https.onCall(async (...details) => {
-  try {
-    let userRecord = await admin.auth().getUserByEmail("hoodwink73@gmail.com");
-    userRecord = userRecord.toJSON();
-    await sendWelcomeEmail(userRecord);
-  } catch (e) {
-    console.error(e);
-  }
-});
+// exports.sendDailyEmails = functions.https.onCall(async () => {
+// try {
+//   let userRecord = await admin
+//     .auth()
+//     .getUserByEmail("arijit@peacelilylabs.com");
+//   userRecord = userRecord.toJSON();
+//   await sendDailyEmail({ userID: getUserGoogleID(userRecord) }).toPromise();
+// } catch (e) {
+//   console.error(e);
+// }// // //
+//
+// });
+
+// exports.scheduleDailyMails = functions.https.onCall(scheduleDailyMail);
+
+exports.scheduleDailyMails = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: "2GB"
+  })
+  .pubsub.schedule("every 1 hours synchronized")
+  .onRun(scheduleDailyMail);
+
+exports.sendDailyEmail = functions.firestore
+  .document("scheduled_emails/{userID}")
+  .onUpdate(async (...[, context]) => {
+    const userID = context.params.userID;
+    await sendDailyEmail({ userID }).toPromise();
+  });

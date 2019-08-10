@@ -25,3 +25,8 @@ exports.DEFAULT_WORKING_TIME = {
   workEndTime: { hours: 17, minutes: 0 },
   workingDays: [1, 2, 3, 4, 5]
 };
+
+exports.DAILY_EMAIL_SEND_TIME = {
+  hours: 9,
+  minutes: 0
+};
