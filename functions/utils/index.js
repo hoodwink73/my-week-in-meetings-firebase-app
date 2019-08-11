@@ -12,6 +12,8 @@ const getUserEmail = require("./getUserEmail");
 const doesEventHappensThisDay = require("./doesEventHappensThisDay");
 const qualifyEvent = require("./qualifyEvent");
 const checkTime = require("./checkTime");
+const timeLeftForWorkTodayInMs = require("./timeLeftForWorkTodayInMs");
+const expressDurationInHoursAndMinutes = require("./expressDurationInHoursAndMinutes");
 
 module.exports = {
   getStartOfWeek,
@@ -24,5 +26,7 @@ module.exports = {
   getUserEmail,
   doesEventHappensThisDay,
   qualifyEvent,
-  checkTime
+  checkTime,
+  timeLeftForWorkTodayInMs,
+  expressDurationInHoursAndMinutes
 };

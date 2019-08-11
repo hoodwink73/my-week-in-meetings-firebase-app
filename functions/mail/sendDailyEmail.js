@@ -2,6 +2,11 @@ const admin = require("firebase-admin");
 const ASQ = require("asynquence-contrib");
 const moment = require("moment-timezone");
 
+const {
+  timeLeftForWorkTodayInMs,
+  expressDurationInHoursAndMinutes
+} = require("../utils");
+
 const getUserDetails = require("../authentication/getUserDetails");
 const { getEventsForUserForWeek } = require("../events");
 const {
@@ -30,6 +35,18 @@ module.exports = function sendDailyEmail({ userID }) {
       const userTimezone = userDetails.calendar.timeZone;
       const userEmail = userDetails.calendar.summary;
       const userFirstName = userDetails.userDetails.firstName;
+      const userWorkingTime = userDetails.userConfig.workingTime;
+
+      const [workStartTime, workEndTime] = [
+        ["workStartTime", moment.tz(userTimezone)],
+        ["workEndTime", moment.tz(userTimezone)]
+      ].map(([w, t]) => {
+        t.hours(userWorkingTime[w].hours);
+        t.minutes(userWorkingTime[w].minutes);
+        t.seconds(0);
+
+        return t;
+      });
 
       if (!userEmail) {
         console.error(
@@ -68,29 +85,45 @@ module.exports = function sendDailyEmail({ userID }) {
           );
           return [eventsForYesterday, eventsForToday];
         })
-        .val(eventsForTodayAndYesterday =>
-          eventsForTodayAndYesterday.map(aggregateDailyEmailStats)
-        )
-        .seq(([dailyEmailDataYesterday, dailyEmailDataToday]) => {
-          return ASQ()
-            .val(() => ({ userID }))
-            .promise(() =>
-              sendEmail({
-                to: userEmail,
-                subject: SUBJECT,
-                templateId: DAILY_EMAIL_TEMPLATE,
-                dynamic_template_data: {
-                  name: userFirstName,
-                  today: dailyEmailDataToday,
-                  yesterday: dailyEmailDataYesterday
-                }
+        .val(eventsForTodayAndYesterday => {
+          return {
+            stats: eventsForTodayAndYesterday.map(aggregateDailyEmailStats),
+            timeToGetWorkDone: expressDurationInHoursAndMinutes(
+              timeLeftForWorkTodayInMs(eventsForTodayAndYesterday[1], {
+                workStartTime,
+                workEndTime,
+                fromTime: workStartTime,
+                timezone: userTimezone
               })
             )
-            .val(() => ({ userID }))
-            .promise(updateFirestoreAboutSentEmail)
-            .val(() => {
-              console.log(`Daily email was sent to ${userID}`);
-            });
-        });
+          };
+        })
+        .seq(
+          ({
+            stats: [dailyEmailDataYesterday, dailyEmailDataToday],
+            timeToGetWorkDone
+          }) => {
+            return ASQ()
+              .val(() => ({ userID }))
+              .promise(() =>
+                sendEmail({
+                  to: userEmail,
+                  subject: SUBJECT,
+                  templateId: DAILY_EMAIL_TEMPLATE,
+                  dynamic_template_data: {
+                    name: userFirstName,
+                    today: dailyEmailDataToday,
+                    yesterday: dailyEmailDataYesterday,
+                    timeToGetWorkDone
+                  }
+                })
+              )
+              .val(() => ({ userID }))
+              .promise(updateFirestoreAboutSentEmail)
+              .val(() => {
+                console.log(`Daily email was sent to ${userID}`);
+              });
+          }
+        );
     });
 };

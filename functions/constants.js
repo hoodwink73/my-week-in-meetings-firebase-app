@@ -30,3 +30,6 @@ exports.DAILY_EMAIL_SEND_TIME = {
   hours: 9,
   minutes: 0
 };
+
+exports.INCLUDE_COOL_OFF_TIME = true;
+exports.COOL_OFF_TIME_IN_MINUTES = 10;
