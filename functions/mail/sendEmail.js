@@ -4,7 +4,7 @@ const functions = require("firebase-functions");
 const SENDGRID_API_KEY = functions.config().sendgrid.apikey;
 sgMail.setApiKey(SENDGRID_API_KEY);
 
-const FROM_ADDRESS = "hello@deepwork.today";
+const FROM_ADDRESS = "makers@deepwork.today";
 
 module.exports = async function sendEmail({
   to,

@@ -4,7 +4,7 @@ const sendEmail = require("./sendEmail");
 
 const WELCOME_EMAIL_TEMPLATE_ID = "d-374eb05461db444ab835c4736a0e563a";
 
-const SUBJECT = "Welcome to Deepwork Today";
+const SUBJECT = "How to Deepwork Today";
 
 module.exports = function sendWelcomeEmail(user) {
   const userName = getUsername(user);
