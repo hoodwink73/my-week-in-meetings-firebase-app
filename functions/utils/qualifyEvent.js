@@ -1,10 +1,15 @@
-const { EVENT_STATUSES } = require("../constants");
+const { EVENT_STATUSES, MAXIMUM_EVENT_TIME_IN_MS } = require("../constants");
 
 // we want to ignore events based on two criterias
 // -  the user has declined the event explicitly
 // -  there are no other attendees in the event (expcept the user)
 module.exports = function qualifyEvent(event) {
   let attendeeMe, areThereOtherAttendees;
+
+  // filter out all events which exceeds a certain duration
+  if (event.enrichedData.durationInMs > MAXIMUM_EVENT_TIME_IN_MS) {
+    return false;
+  }
 
   if (event.attendees) {
     [attendeeMe] = event.attendees.filter(attendee => attendee.self);

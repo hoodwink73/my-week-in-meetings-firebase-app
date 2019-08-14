@@ -5,7 +5,7 @@ const moment = require("moment-timezone");
 const { getUserDetails } = require("../authentication");
 const { getEventsForUserForWeek } = require("../events");
 const aggregators = require("./aggregators");
-const { EVENT_STATUSES } = require("../constants");
+const { qualifyEvent } = require("../utils");
 
 const AGGREGATE_OPERATIONS_TO_BE_PERFORMED = values(aggregators);
 
@@ -38,31 +38,7 @@ module.exports = ({ userID, week }) => {
       // -  the user has declined the event explicitly
       // -  there are no other attendees in the event (expcept the user)
 
-      const filteredEvents = events.filter(event => {
-        let attendeeMe, areThereOtherAttendees;
-
-        if (event.attendees) {
-          [attendeeMe] = event.attendees.filter(attendee => attendee.self);
-
-          areThereOtherAttendees = Boolean(
-            event.attendees.filter(attendee => !attendee.self).length
-          );
-
-          // sometimes you can organise an event
-          // (hence the event will be in your calendar)
-          // but choose to opt-out of the attendee list
-          // so we need to check whether the attendee list includes you
-          // before we can check your response status to the event
-          if (
-            attendeeMe &&
-            attendeeMe.responseStatus !== EVENT_STATUSES.get("Declined")
-          ) {
-            if (areThereOtherAttendees) {
-              return true;
-            }
-          }
-        }
-      });
+      const filteredEvents = events.filter(qualifyEvent);
 
       done({ userDetails, week }, filteredEvents);
     })

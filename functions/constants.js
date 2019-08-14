@@ -33,3 +33,6 @@ exports.DAILY_EMAIL_SEND_TIME = {
 
 exports.INCLUDE_COOL_OFF_TIME = true;
 exports.COOL_OFF_TIME_IN_MINUTES = 10;
+
+// events exceeding these duration shall be filtered
+exports.MAXIMUM_EVENT_TIME_IN_MS = 8 * 60 * 60 * 1000;
