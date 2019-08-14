@@ -12,12 +12,15 @@ async function getUserTimezones() {
 
   usersCollectionSnapshot.forEach(queryDocumentSnapshot => {
     const user = queryDocumentSnapshot.data();
-    usersAndTheirTimezones.push({
-      userID: queryDocumentSnapshot.id,
-      timezone: user.calendar.timeZone
-    });
-  });
 
+    // some users do not have calendar details
+    if (user.calendar) {
+      usersAndTheirTimezones.push({
+        userID: queryDocumentSnapshot.id,
+        timezone: user.calendar.timeZone
+      });
+    }
+  });
   return usersAndTheirTimezones;
 }
 
@@ -46,10 +49,19 @@ module.exports = async function scheduleDailyMail() {
 
   const qualifiedUsersForSendingEmail = userTimezones.filter(
     ({ userID, timezone }) => {
-      var isItTheRightTime = checkTime({
-        time: DAILY_EMAIL_SEND_TIME,
-        timezone
-      });
+      var isItTheRightTime =
+        checkTime({
+          time: DAILY_EMAIL_SEND_TIME,
+          timezone
+        }) &&
+        checkTime({
+          time: {
+            ...DAILY_EMAIL_SEND_TIME,
+            hours: DAILY_EMAIL_SEND_TIME.hours + 5
+          },
+          timezone,
+          comparator: "<"
+        });
 
       var lastMailSentAt = lastSentEmailTimes[userID];
 

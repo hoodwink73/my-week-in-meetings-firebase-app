@@ -21,8 +21,12 @@ const {
   resubscribeToCalendarEvents
 } = require("./calendarWebHooks");
 
-const { sendEmail, sendDailyEmail, sendWelcomeEmail } = require("./mail");
-const scheduleDailyMail = require("./mail/scheduleDailyMail.js");
+const {
+  sendEmail,
+  sendDailyEmail,
+  sendWelcomeEmail,
+  scheduleDailyMail
+} = require("./mail");
 
 const { onDeleteUserRequest, deleteUserData } = require("./cleanup");
 const {
@@ -147,16 +151,15 @@ exports.webhookExpirationCheck = functions
 //
 
 // exports.sendDailyEmails = functions.https.onCall(async () => {
-// try {
-//   let userRecord = await admin
-//     .auth()
-//     .getUserByEmail("arijit@peacelilylabs.com");
-//   userRecord = userRecord.toJSON();
-//   await sendDailyEmail({ userID: getUserGoogleID(userRecord) }).toPromise();
-// } catch (e) {
-//   console.error(e);
-// }// // //
-//
+//   try {
+//     let userRecord = await admin
+//       .auth()
+//       .getUserByEmail("arijit@peacelilylabs.com");
+//     userRecord = userRecord.toJSON();
+//     await sendDailyEmail({ userID: getUserGoogleID(userRecord) }).toPromise();
+//   } catch (e) {
+//     console.error(e);
+//   } // // //
 // });
 
 // exports.scheduleDailyMails = functions.https.onCall(scheduleDailyMail);

@@ -85,11 +85,11 @@ module.exports = function sendDailyEmail({ userID }) {
           );
           return [eventsForYesterday, eventsForToday];
         })
-        .val(eventsForTodayAndYesterday => {
+        .val(eventsForYesterdayAndToday => {
           return {
-            stats: eventsForTodayAndYesterday.map(aggregateDailyEmailStats),
-            timeToGetWorkDone: expressDurationInHoursAndMinutes(
-              timeLeftForWorkTodayInMs(eventsForTodayAndYesterday[1], {
+            stats: eventsForYesterdayAndToday.map(aggregateDailyEmailStats),
+            timeToGetWorkDoneToday: expressDurationInHoursAndMinutes(
+              timeLeftForWorkTodayInMs(eventsForYesterdayAndToday[1], {
                 workStartTime,
                 workEndTime,
                 fromTime: workStartTime,
@@ -101,28 +101,34 @@ module.exports = function sendDailyEmail({ userID }) {
         .seq(
           ({
             stats: [dailyEmailDataYesterday, dailyEmailDataToday],
-            timeToGetWorkDone
+            timeToGetWorkDoneToday
           }) => {
             return ASQ()
               .val(() => ({ userID }))
-              .promise(() =>
-                sendEmail({
-                  to: userEmail,
-                  subject: SUBJECT,
-                  templateId: DAILY_EMAIL_TEMPLATE,
-                  dynamic_template_data: {
-                    name: userFirstName,
-                    today: dailyEmailDataToday,
-                    yesterday: dailyEmailDataYesterday,
-                    timeToGetWorkDone
-                  }
-                })
-              )
+              .promise(() => {
+                if (
+                  dailyEmailDataYesterday.numberOfEvents < 1 &&
+                  dailyEmailDataToday.numberOfEvents < 1
+                ) {
+                  return Promise.resolve();
+                } else {
+                  return sendEmail({
+                    to: userEmail,
+                    subject: SUBJECT,
+                    templateId: DAILY_EMAIL_TEMPLATE,
+                    dynamic_template_data: {
+                      name: userFirstName,
+                      today: dailyEmailDataToday,
+                      yesterday: dailyEmailDataYesterday,
+                      timeToGetWorkDoneToday
+                    }
+                  }).then(() => {
+                    console.log(`Daily email was sent to ${userID}`);
+                  });
+                }
+              })
               .val(() => ({ userID }))
-              .promise(updateFirestoreAboutSentEmail)
-              .val(() => {
-                console.log(`Daily email was sent to ${userID}`);
-              });
+              .promise(updateFirestoreAboutSentEmail);
           }
         );
     });
