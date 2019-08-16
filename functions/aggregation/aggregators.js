@@ -41,9 +41,14 @@ const aggregateAverageMeetingTime = (
 
 // rank collaborators by the number of meetings you have attended with them
 const rankCollaborators = (events = [], priorAccumulatedValue = {}) => {
-  const attendeesForAllEvents = concatMap(events, event => {
+  var attendeesForAllEvents = concatMap(events, event => {
     return event.attendees && event.attendees.length ? event.attendees : [];
   });
+
+  // filter out attendee if its a resource
+  attendeesForAllEvents = attendeesForAllEvents.filter(
+    attendee => !attendee.resource
+  );
 
   let result = attendeesForAllEvents.reduce(
     (attendeeMeetingsMap, attendeeInAMeeting) => {
