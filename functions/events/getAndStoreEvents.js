@@ -70,6 +70,5 @@ module.exports = ({
           batch.commit()
         )
         .pipe(done);
-    })
-    .or(err => console.error(err));
+    });
 };
